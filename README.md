@@ -1,4 +1,4 @@
-# Poker-Inspired Stock Trading Algorithm
+# Poker Trading Algorithm
 
 ## Overview
 This project implements a trading algorithm based on poker decision-making strategies, applied to stock market investments. By leveraging probabilistic thinking, pattern recognition, and strategic risk management from poker, we've developed a novel approach to analyzing and predicting stock market movements.
