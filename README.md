@@ -1,56 +1,92 @@
-# Poker Trading Algorithm
+# Poker-Inspired Monthly Return Research
 
-## Overview
-This project implements a trading algorithm based on poker decision-making strategies, applied to stock market investments. By leveraging probabilistic thinking, pattern recognition, and strategic risk management from poker, we've developed a novel approach to analyzing and predicting stock market movements.
+**The return-sign heuristic lost to buy-and-hold in the historical AAPL example.**
+This small Python experiment shows how to test a fixed decision rule against a
+simple baseline on the same dates. The poker analogy is the inspiration; the
+code does not model a poker game, estimate probabilities, or learn a strategy.
 
-## Features
-- **Binary Outcome Analysis**: Converts monthly stock returns into binary signals (positive/negative)
-- **Sequence Pattern Recognition**: Identifies recurring patterns in market movements
-- **Adaptive Decision Framework**: Trading decisions based on historical pattern probabilities
-- **Performance Comparison**: Benchmarking against traditional buy-and-hold strategies
+![Offline demo comparing the return-sign heuristic with buy-and-hold on synthetic monthly prices](docs/poker-comparison.png)
 
-## Technology Stack
-- **Python 3.x**
-- **Libraries**: pandas, numpy, matplotlib, yfinance
-- **Data Source**: Yahoo Finance API
+## Quick start: no market data needed
 
-## Implementation Details
-The algorithm works by:
-1. Fetching historical stock data (focused on AAPL from 2010-2023)
-2. Calculating monthly returns and converting them to binary outcomes
-3. Creating decision sequences based on 3-month patterns
-4. Executing trades based on identified historical patterns:
-   - Buy when the previous month showed positive returns
-   - Buy after two consecutive negative months (potential recovery signal)
+Use **Python 3.12**. Installing dependencies requires internet access; the
+synthetic example and tests run offline after that.
 
-## Results and Performance
-Our analysis demonstrates that while the poker-inspired strategy provides interesting insights into market behavior, it currently underperforms compared to a simple buy-and-hold approach over the analyzed time period. This illustrates the complexity of market prediction and highlights areas for further refinement.
-
-## Installation
-```bash
-# Clone the repository
-git clone https://github.com/0xmrpinheiro/poker-trading-algorithm.git
-
-# Install required packages
-pip install pandas numpy matplotlib yfinance
+```sh
+git clone https://github.com/0xmrpinheiro/poker-game-theory-research.git
+cd poker-game-theory-research
 ```
 
-## Usage
-```python
-# Run the main analysis script
-python poker_trading_algorithm.py
+**macOS / Linux**
+
+```sh
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python poker_trading_algorithm.py --sample --plot poker-comparison.png
 ```
 
-## Future Work
-- Extend the analysis to additional stocks and market sectors
-- Incorporate more sophisticated poker concepts (e.g., pot odds, expected value)
-- Implement machine learning to identify optimal pattern recognition
-- Explore risk-adjusted performance metrics
+**Windows PowerShell**
 
-## License
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe poker_trading_algorithm.py --sample --plot poker-comparison.png
+```
 
-## Acknowledgments
-- Inspired by probabilistic decision-making in poker
-- Yahoo Finance for historical stock data
-- Open-source Python data science community
+Open `poker-comparison.png` to see both curves starting at 10,000. The chart
+above is from this synthetic example, not the AAPL run.
+
+## Reproduce the historical AAPL comparison
+
+With the virtual environment active:
+
+```sh
+python poker_trading_algorithm.py --ticker AAPL --start 2010-01-01 --end 2023-01-01
+```
+
+The script downloads adjusted daily closes from Yahoo Finance and uses the
+last available close of each month. The date range uses a first-of-month start
+and exclusive end. Two monthly returns warm up the rule: both portfolios
+start at the **March 2010 close** and are evaluated from **April 2010 through
+December 2022** (153 months).
+
+| AAPL comparison | Final hypothetical value | Cumulative return |
+| --- | ---: | ---: |
+| Return-sign heuristic | 108,777.22 | +987.77% |
+| Buy and hold | 181,613.13 | +1,716.13% |
+
+These are results from one download, using 10,000 in starting capital without
+trading costs. Adjusted historical data can change. For a frozen input, supply
+your own CSV with `Date` (ISO date) and `Close` (adjusted month-end close)
+columns, one row per consecutive month:
+
+```sh
+python poker_trading_algorithm.py --csv monthly-closes.csv --plot comparison.png
+```
+
+## How the comparison works
+
+- The heuristic is exposed for the next month if the most recent monthly return
+  was positive **or** the two most recent returns were both non-positive.
+  Otherwise it stays in cash. It never uses the month being scored to decide
+  that month's exposure.
+- Buy-and-hold stays fully exposed for every scored month. Both use the same
+  adjusted-close returns and starting capital. The calculation assumes
+  rebalancing at month-end closes and zero return on cash.
+- The script also counts overlapping three-month sign patterns. These counts
+  are descriptive only and do not choose the rule.
+
+This is one retrospective, single-ticker comparison. It does not account for
+fees, slippage, or taxes, and it does not establish future performance. It is
+educational research, not a trading system or investment advice.
+
+## Tests
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+Related public experiment: [LSTM Equity Sequence Modeling](https://github.com/0xmrpinheiro/lstm-equity-sequence-modeling)
+compares one-step forecast errors against a previous-close baseline.
+
+Licensed under [GPL-3.0](LICENSE).
